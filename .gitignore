@@ -1,0 +1,44 @@
+# macOS
+.DS_Store
+
+# Node / static site generator (framework TBD)
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build output (any framework)
+dist/
+build/
+public/
+.output/
+.astro/
+.next/
+.nuxt/
+.svelte-kit/
+.cache/
+
+# Hugo
+resources/
+hugo_stats.json
+
+# MkDocs
+site/
+
+# Local environment
+.env
+.env.local
+.env.*.local
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
