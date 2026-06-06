@@ -1,21 +1,22 @@
 # Examples
 
-End-to-end scenarios with runnable code — sample policies, sample workloads, sample compliance setups.
+End-to-end scenarios with runnable code — sample Contracts, sample policies, sample workloads, and compliance setups.
 
 ## Status
 
-This section is **scaffolded but not yet populated**. Phase 1 ships the policy engine and gateway; concrete example sets land alongside engine integrations (Phase 3+) and the compliance bundle work (Phase 6).
+This section is being populated. For worked examples available right now, see:
 
-For inline examples right now, see:
-
-- [Getting Started](../getting-started/install-and-first-policy.md) — a complete walkthrough with a P1 schema policy, curl requests against the gateway, and audit-trail inspection
-- [REST API Reference](../reference/rest-api.md) — curl examples for every endpoint
+- [Getting Started](../getting-started/install-and-first-policy.md) — a complete walkthrough with a schema policy, curl requests against the gateway, and audit-trail inspection.
+- [Guides](../guides/README.md) — end-to-end how-tos with copy-pasteable config: [connect Spark](../guides/connect-spark-write-path.md), [connect Trino/BI](../guides/connect-read-path.md), [author Access policies](../guides/author-access-policies.md), [author metrics](../guides/author-semantic-metrics.md), [ship a Contract](../guides/author-and-ship-a-contract.md).
+- [Policy language reference](../reference/policy-language.md) — copy-pasteable CEL expressions.
+- [REST API Reference](../reference/rest-api.md) — curl examples for the gateway, lineage, and webhook endpoints.
 
 ## Planned example sets
 
-- **Sample policies** — a curated library of P1 / P2 / P3 CEL expressions for common scenarios (PII columns required, write-by-role-only, 90-day-retention-on-PHI, etc.)
-- **Sample workloads** — Iceberg write workloads under Polaris and Nessie, with and without policy violations, to exercise the gateway
-- **Compliance scenarios** — SOC 2 controls mapped to Neksur policies; HIPAA-flavored retention + access control; PCI scope reduction via L3 detection
-- **Integration recipes** — Spark writers behind the gateway, Trino readers (Phase 2+)
+- **Sample policies** — a curated library of CEL expressions for common scenarios (PII columns required, write-by-role-only, retention floors, row filters, column masks).
+- **Sample Contracts** — full Data Contracts binding Meaning + Access + State for a dataset, walked through the `draft → review → compile → deploy → active → audit` lifecycle.
+- **Sample workloads** — Iceberg write workloads under Polaris and Nessie, with and without violations, plus Trino reads through the SQL proxy showing identical enforcement.
+- **Compliance scenarios** — SOC 2 controls mapped to Contracts; HIPAA-flavored retention + access control; PCI scope reduction via detection and the audit chain.
+- **AI-agent recipes** — the MCP `graph.traverse` presets (`ai_agent_context`, `impact_analysis`, `pii_propagation`, `explain_a_number`) under Access enforcement.
 
 Have an example you'd like to contribute? See [CONTRIBUTING.md](../../CONTRIBUTING.md).

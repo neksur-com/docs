@@ -4,13 +4,15 @@
 
 ## Overview
 
-Neksur is a three-layer enforcement system for Apache Iceberg data lakehouses, backed by a tenant-scoped property graph. It places **policy at the point of mutation** — every commit to your Iceberg catalog passes through a write-path gateway that evaluates CEL policies before the upstream catalog ever sees the request, with a detection sweep behind it as a backstop. The three layers (**L1** write-path gateway, **L2** read-path SQL proxy, **L3** post-commit detection) are designed to be complementary rather than redundant; in the shipped Phase 0 + Phase 1 baseline you get L1 and a basic regex-driven L3. L2 lands in Phase 2.
+Neksur is the **Data Contract Plane** for Apache Iceberg lakehouses: it governs each dataset through a single [Data Contract](../concepts/data-contract.md) — binding [Meaning, Access, and State](../concepts/dimensions.md) — and enforces that Contract at **several coordinated points** in the data path, backed by a tenant-scoped property graph. It places **policy at the point of mutation** — every commit passes through a write-path gateway that evaluates CEL policies before the upstream catalog sees the request — *and* at the point of consumption — a read-path SQL proxy that compiles the same Access policy into query traffic — with a detection sweep behind both as a backstop.
 
-This document is the operator's-eye map of the moving parts — read it before installing.
+The enforcement points (catalog gateway, read-path SQL proxy, writer-side Spark transform, credential vending, post-commit detection) are complementary rather than redundant. This document is the operator's-eye map of the moving parts — read it before installing. The [Enforcement model](../concepts/enforcement.md) concept page explains *why* the design is multi-point; this page covers *how* it is wired.
 
-## The three coordinated enforcement layers
+> **Heritage note.** Earlier revisions of this document described an "L1 / L2 / L3" three-layer model where L2 was a *planned* read-path proxy. That naming collided with the write-path defense levels in ADR-003 and is no longer used in user-facing material; the read path is now part of Core. This page keeps the detailed L1-gateway and detection sections (they remain accurate) and describes the read path and the other points by name.
 
-Neksur applies the same governance contract through three layers chosen to fail in different ways. Single-layer designs are brittle: a write-path filter can't see novel data shapes, a detector alone is always reactive, and a read-path proxy alone can't stop writes from ever landing. Defense in depth across the three layers is the design point.
+## The coordinated enforcement points
+
+Neksur enforces one Data Contract through several points chosen to fail in different ways. Single-point designs are brittle: a write-path filter can't see novel data shapes, a detector alone is always reactive, and a read-path proxy alone can't stop writes from ever landing. Defense in depth across the points is the design point. The two sections below — the **write-path catalog gateway** and **post-commit detection** — document the commit and backstop paths in depth; the **read-path SQL proxy**, **writer-side transform**, and **credential vending** are summarized under [Read path, writer-side, and credential vending](#read-path-writer-side-and-credential-vending).
 
 ### L1 — Write-Path Catalog Gateway (shipped — Phase 1)
 
@@ -53,11 +55,22 @@ The full pipeline runs inside the request goroutine; there is no async hop betwe
 | 502  | Upstream catalog forward failure |
 | 503  | Policy engine unavailable (fail-closed) |
 
-### L2 — Read-Path SQL Proxy (planned — Phase 2)
+### Read path, writer-side, and credential vending
 
-L2 is cross-engine read-time policy enforcement: a SQL proxy that intercepts queries, applies row/column policy, and forwards to the underlying compute engine. **Not in Phase 0 + Phase 1.** Phase 2 ships it; the architectural slot exists so today's policy definitions stay portable across the read- and write-paths.
+Three further enforcement points complete the surface. They share the Contract's Access definition with the gateway, so a policy authored once applies on read, on write, and pre-write.
 
-### L3 — Post-Commit Detection (shipped — Phase 1, regex baseline)
+**Read-path SQL proxy.** Cross-engine read-time enforcement: a SQL proxy (`internal/sqlproxy`) intercepts queries, compiles the Contract's row filters and column masks into the query, and forwards to the underlying compute engine through an engine dispatcher (`internal/engines`, with a Trino dialect today). It is fail-closed and emits per-query usage records. BI tools that don't speak the proxy's native protocol connect through two wire-protocol transports:
+
+- **`pgwire`** (`internal/pgwire`) — a PostgreSQL libpq v3 wire server, so any Postgres-compatible BI client or driver connects directly and gets policy-compiled results.
+- **XMLA** (`internal/xmla`) — the SOAP-over-HTTP Analysis Services protocol, so Excel and Power BI open Neksur as an OLAP connection.
+
+Both transports run the same listener → auth → tenant-resolve → dispatch pipeline and apply the same Access compilation.
+
+**Writer-side transform (Spark).** For Spark, an optional pre-write layer applies column masking, encryption, redaction, and tokenization *before* bytes land in object storage. It ships as a separate library ([`neksur-com/neksur-spark-policy`](https://github.com/neksur-com/neksur-spark-policy)) with two byte-identical frontends — a Catalyst optimizer extension (silent) and an explicit SDK (`writeWithNeksur`) — proven equivalent by a CI parity gate. This is a Defense-in-Depth edition capability; see [Editions and tiers](../concepts/editions.md).
+
+**Credential vending.** A vending boundary (`internal/credvend`) issues short-lived, scoped storage credentials so an engine cannot reach data outside the Contract's bounds, with a quarantine path for revoked sessions. Also a Defense-in-Depth capability.
+
+### Post-Commit Detection (regex baseline in Core; ML in the Intelligence edition)
 
 L3 is a backstop that scans newly-committed snapshots for content the write-path policies couldn't anticipate — novel column names, unexpected PII shapes — and alerts. It runs as an **in-process goroutine pool** (default 4 workers; tune via `NEKSUR_L3_WORKERS`) consuming `Hit` events from three trigger sources:
 
@@ -75,9 +88,9 @@ The Phase 1 classifier is **regex-based** (`internal/detect/regex/classifier.go`
 | Cell-value pattern match only   | 0.55       | no     |
 | Column-name **and** value match | 0.92       | **yes** (Slack) |
 
-A column literally named `email` carrying integer rows does not alert; only the combination of suggestive name and matching values trips the threshold. ML-based classification is on the roadmap (Phase 6) — the graph emission shape (`Tag` + `Classification` + edges) is identical, so downstream consumers don't change.
+A column literally named `email` carrying integer rows does not alert; only the combination of suggestive name and matching values trips the threshold. **ML-based classification** is an Intelligence-edition capability, with a training-data curation workflow (encrypted store, scan/pre-label, review/edit, export-for-training, DPO/admin gating) in the AI/ML track — the graph emission shape (`Tag` + `Classification` + edges) is identical, so downstream consumers don't change when the classifier is swapped.
 
-Why three layers: write-time policy is fast, clean, and stops violations before they ever land — but it can't see novel data shapes the policy author didn't anticipate. Detection catches the rest, slightly after the fact, by sweeping the artefacts the gateway already let through. Phase 2's L2 read-path closes the third side: anything still in the lake that violates current policy is filtered at query time.
+Why multiple points: write-time policy is fast, clean, and stops violations before they ever land — but it can't see novel data shapes the policy author didn't anticipate. Detection catches the rest, slightly after the fact, by sweeping the artefacts the gateway already let through. The read-path proxy closes the third side: anything still in the lake that violates current policy is filtered at query time.
 
 ## The graph foundation (shipped — Phase 0 + 1)
 
@@ -212,24 +225,65 @@ The at-least-once durability + cycle prevention together give you replay-safe li
 
 Audit emission and the relational `audit_log` row land in the **same transaction** as the graph MERGEs — a half-emitted audit trail is not a state the system can be in.
 
-## What's NOT in Phase 0 + Phase 1 (roadmap)
+## How the dimensions map to components
 
-The architecture is designed for the full enforcement surface; today's shipped baseline is the foundation. The following land in later phases — see [ROADMAP](../README.md) for milestone dates.
+The three Contract dimensions are not separate subsystems — they are realized by the same graph + enforcement machinery, projected differently:
 
-| Capability                                              | Phase   |
-|---------------------------------------------------------|--------:|
-| **L2 Read-Path SQL Proxy** — cross-engine query-time enforcement | Phase 2 |
-| **Glue catalog adapter** — live integration              | Phase 3 |
-| **Unity catalog adapter** — live integration             | Phase 3 |
-| Spark write-path integration (native committer)         | Phase 3 |
-| Trino engine connector                                   | Phase 4 |
-| Snowflake engine connector                               | Phase 4 |
-| Dremio engine connector                                  | Phase 5 |
-| ML-based classification (replaces / augments regex L3)  | Phase 6 |
-| Compliance reporting bundles (SOC 2, HIPAA, GDPR)       | Phase 6 |
-| Public distribution (self-managed binaries, Helm chart) | Phase 7 |
+| Dimension | Realized by |
+|-----------|-------------|
+| **Meaning** | Semantic layer (`internal/semantic`: AST + per-engine compilation), metric store, OSI import/export, the `pgwire`/XMLA read transports. |
+| **Access** | CEL policy engine (`internal/policy`), the catalog gateway (write), the read-path SQL proxy + dispatcher (read), the writer-side Spark transform (pre-write), credential vending. |
+| **State** | Snapshot pinning + schema/retention policy at the gateway (Core); cross-engine coordination — schema-cache invalidation, write-conflict resolution, partition-spec evolution, compaction coordination — in the Commercial / Enterprise modules. |
 
-If you're evaluating Neksur today, target a workload where **L1 write-path policy on Polaris or Nessie** is the centerpiece, with detection-driven Slack alerts as the safety net. Read-path enforcement (L2) and the additional catalog adapters arrive on the schedule above.
+## API surface
+
+Neksur exposes the governed graph and the Contract through several protocols, all tenant-scoped and Access-enforced:
+
+| Surface | Path / transport | Purpose |
+|---------|------------------|---------|
+| **REST** | `/v1/*` (`internal/api/rest`) | Iceberg gateway, lineage, contracts/lifecycle, semantic/metrics, detection, compliance, FinOps, admin. See the [REST API reference](../reference/rest-api.md). |
+| **GraphQL** | `internal/api/graphql` | Schema-first query surface mirroring the REST resources for graph/contract queries. |
+| **MCP** | `internal/api/mcp` | Model Context Protocol server for AI agents. The generic `graph.traverse` tool (with preset recipes: `ai_agent_context`, `impact_analysis`, `pii_propagation`, `explain_a_number`) runs under the same **row-filter + column-mask push-down** as human read traffic, with a clause whitelist and bounded traversal depth. |
+| **SQL proxy** | `internal/sqlproxy` + `pgwire` + `xmla` | Read-path query enforcement and BI connectivity (see above). |
+
+## Editions and the single binary
+
+Neksur is one binary whose capabilities are gated by a signed license verified at startup. Commercial code is compiled in behind build tags (`commercial`, `commercial enterprise`) and constructed only when the license allows:
+
+- **Core** (BSL) — everything documented in the sections above.
+- **Commercial module** ([`neksur-com/neksur-commercial`](https://github.com/neksur-com/neksur-commercial)) — cross-engine coordination: schema-cache invalidation broadcaster, write-conflict coordinator, cross-engine consistency verifier.
+- **Enterprise module** ([`neksur-com/neksur-enterprise`](https://github.com/neksur-com/neksur-enterprise)) — partition-spec evolution tracking, multi-engine compaction coordination, snapshot-pin retention. Depends on the commercial module.
+
+Commercial modules avoid importing Core `internal/` packages; the server wires them in via narrow interfaces and a shared connection pool. See [Editions and tiers](../concepts/editions.md).
+
+## Architecture decision records
+
+The architecture is governed by a set of ADRs (published copies land in this section over time):
+
+| ADR | Title |
+|-----|-------|
+| **ADR-001** | Graph foundation — Apache AGE on Postgres; node/edge label canon; bounded traversal. |
+| **ADR-002** | Licensing — BSL 1.1 Core + commercial modules; one-way ratchet; single binary + feature flags. |
+| **ADR-003** | Write-path policy enforcement — defense-in-depth points (pre-commit, writer-side, post-commit, credential vending); policy categories. |
+| **ADR-004** | SaaS deployment — pooled multi-tenancy (schema-per-tenant + dedicated), connection isolation, AWS + customer VPC peering. |
+| **ADR-005** | MCP Cypher hardening — parameterized queries only, clause whitelist, per-query budgets, tenant RLS. |
+| **ADR-011** | Product concept & terminology — the Data Contract Plane; Meaning/Access/State; one lifecycle; Define/Enforce/Prove; the four additive tiers. |
+
+## Catalog adapters and the roadmap
+
+The architecture is designed for the full multi-engine surface. Adapter / engine coverage is staged:
+
+| Capability | Status |
+|------------|--------|
+| **Polaris / Nessie** catalog adapters | live in Core |
+| **Glue / Unity** catalog adapters | adapter slots present; live integration on the multi-engine track |
+| **Trino** read-path engine | live (engine dispatcher dialect) |
+| **Snowflake / Dremio / Flink** engines | Multi-Engine edition coordination track |
+| **Spark writer-side transform** | [`neksur-spark-policy`](https://github.com/neksur-com/neksur-spark-policy) (Defense-in-Depth) |
+| **ML classification** | Intelligence edition |
+| **Compliance bundles** (SOC 2 / HIPAA / GDPR) | compliance + audit-chain foundation in Core; reporting bundles on the compliance track |
+
+If you're evaluating Neksur today, the highest-leverage starting point remains **write-path Access policy on Polaris or Nessie**, with the read-path proxy enforcing the same policy on Trino and detection as the backstop.
 
 ## Where to next
 

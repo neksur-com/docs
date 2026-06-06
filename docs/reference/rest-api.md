@@ -4,11 +4,15 @@
 
 ## Overview
 
-This is the canonical HTTP API surface exposed by `neksur-server` as of **Phase 1**. The surface comprises four `POST` endpoints that fall into three groups:
+This page documents the **Iceberg gateway, lineage, and webhook** endpoints in detail — the commit data path, which is the surface most integrations write against. These are the parts whose request/response contracts and fail-closed semantics operators most need to get exactly right.
 
-- **L1 Catalog Gateway** — single-table and multi-table commit endpoints that proxy Apache Iceberg REST commits through the Neksur policy engine.
+> **The full API is larger than this page.** Neksur Core also exposes REST resources for contracts and the lifecycle, the semantic layer and metrics, detection, compliance, and FinOps, plus a **GraphQL** surface, an **MCP** server for AI agents, and the **SQL-proxy / `pgwire` / XMLA** read path. See [Architecture → API surface](../architecture/overview.md#api-surface) for the map, and `internal/api/openapi.yml` in the source repo for the generated REST schema. The endpoints below are the stable, heavily-exercised core of that surface.
+
+The gateway endpoints comprise four `POST` routes in three groups:
+
+- **Catalog Gateway (write path)** — single-table and multi-table commit endpoints that proxy Apache Iceberg REST commits through the Neksur policy engine.
 - **Lineage ingestion** — an OpenLineage v2 RunEvent receiver.
-- **Polaris webhook** — an HMAC-signed callback that triggers the L3 detection sweep.
+- **Polaris webhook** — an HMAC-signed callback that triggers the post-commit detection sweep.
 
 All four routes are mounted on the same `http.ServeMux` in `cmd/neksur-server/main.go`. The first three (`/v1/iceberg/*` and `/v1/lineage`) are wrapped in `workosauth.TenantMiddleware`, which resolves the calling tenant and attaches the tenant UUID to the request context before any handler logic runs. The fourth (`/v1/webhooks/polaris`) is intentionally mounted **outside** the tenant middleware — the HMAC signature verification IS the authentication step (the per-tenant secret IS the principal), and tenant resolution happens against the signed payload only after verification succeeds.
 
@@ -44,7 +48,7 @@ The JWT is parsed **without signature verification** in Phase 1 — Neksur trust
 
 The audit `principal_source` value for this path is `auth_header`.
 
-> Phase 2 L4 cred vending will add JWKS signature verification at this boundary.
+> Signed-token (JWKS) signature verification at this boundary is planned; today the gateway trusts an upstream proxy / IdP to have verified the token. Credential vending (compute isolation) is available as a Defense-in-Depth capability — see [Concepts: Enforcement model](../concepts/enforcement.md#credential-vending-compute-isolation).
 
 ### Step 3 — Session cookie fallback (browser-initiated)
 
@@ -402,15 +406,18 @@ The only request-shape bounds enforced inside Neksur are the per-endpoint body c
 
 ---
 
-## What's not in the Phase 1 API surface
+## Beyond the gateway endpoints
 
-The following are on the roadmap but **do not exist** as of Phase 1. Do not write integrations against them:
+The four endpoints above are documented here in full because they carry the commit data path. The rest of the surface is available in Core but documented elsewhere as it stabilizes:
 
-| Surface | Earliest phase |
-|---------|----------------|
-| SQL proxy (pgwire-compatible read-path with masking) | Phase 2 |
-| GraphQL endpoint for policy + audit queries | Phase 4 – 5 |
-| MCP (Model Context Protocol) server | Phase 5+ |
-| First-party SDK clients (Go, Python, TypeScript) | Phase 7 |
+| Surface | Where it lives | Status |
+|---------|----------------|--------|
+| **SQL proxy** (read-path enforcement) + `pgwire` + XMLA | `internal/sqlproxy`, `internal/pgwire`, `internal/xmla` | Core — see [Architecture](../architecture/overview.md#read-path-writer-side-and-credential-vending) |
+| **GraphQL** (graph / contract queries) | `internal/api/graphql` | Core |
+| **MCP server** (`graph.traverse` for AI agents) | `internal/api/mcp` | Core — Access-enforced, clause-whitelisted |
+| **Contracts / lifecycle, semantic / metrics, detection, compliance, FinOps** REST resources | `internal/api/rest`, `internal/api/openapi.yml` | Core |
+| First-party SDK clients (Go, Python, TypeScript) | — | on the distribution track |
 
-See [Getting Started](../getting-started/install-and-first-policy.md) for the supported integration path today (deploy `neksur-server`, point Spark / Trino at the gateway endpoints, register policies via the admin CLI).
+When integrating, treat the gateway/lineage/webhook contracts on this page as stable; for the other surfaces, generate against `internal/api/openapi.yml` (REST) or the GraphQL schema, which are the source of truth.
+
+See [Getting Started](../getting-started/install-and-first-policy.md) for the supported integration path today (deploy `neksur-server`, point Spark / Trino at the gateway and read-path proxy, register policies via the admin CLI).

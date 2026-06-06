@@ -1,23 +1,19 @@
 # Concepts
 
-In-depth conceptual explanations of Neksur's core ideas — what an "open lakehouse," "write-path enforcement," "policy-as-code," or "lineage graph" actually means in Neksur terms, and why each design choice was made.
+In-depth explanations of the ideas Neksur is built on — what a **Data Contract** is, why it has three coupled dimensions, how its lifecycle works, and where the Contract is enforced in the data path. Read these before the architecture deep-dive if you want the *why* behind the design.
 
-## Status
+## Concept pages
 
-This section is **scaffolded but not yet populated**. The early Neksur work has focused on shipping working code first (Phases 0–1) and operator-facing docs second (this repository). Conceptual deep-dives will land as the product surface grows beyond the write-path foundation.
+- **[The Data Contract](./data-contract.md)** — the central abstraction: one Contract per dataset, what it binds, and why a *contract* rather than a *policy*.
+- **[Meaning, Access, State](./dimensions.md)** — the three coupled dimensions of every Contract, what each guarantees, and why they are co-equal rather than layered.
+- **[The Contract lifecycle](./lifecycle.md)** — the `draft → review → compile → deploy → active → audit` state machine, sign-offs, and the three buyer jobs (Define / Enforce / Prove).
+- **[Enforcement model](./enforcement.md)** — the coordinated points where the Contract is enforced (catalog gateway, writer-side transform, read-path proxy, credential vending, post-commit detection) and why defense-in-depth across them is the design point.
+- **[Editions and tiers](./editions.md)** — the four additive product tiers (Core / Multi-Engine / Defense-in-Depth / Intelligence), how a single binary gates them, and how the repositories map.
 
-Until then, the relevant concept material is interleaved into:
+## See also
 
-- [What is Neksur?](../intro/what-is-neksur.md) — the layered enforcement model (L1 / L2 / L3) at a high level
-- [Architecture Overview](../architecture/overview.md) — how the pieces fit together in code
-- [Getting Started](../getting-started/install-and-first-policy.md) — what a policy *is* in practice, by example
-
-## Planned topics
-
-- **Open lakehouse, defined** — what counts as "open," what doesn't, why the distinction matters
-- **Write-path enforcement** — the case for catching policy violations at commit time, not after
-- **Multi-engine policy** — one expression, enforced across Spark / Trino / Snowflake / Dremio (planned Phase 2+)
-- **The lineage graph** — Iceberg metadata + OpenLineage as graph data, why a graph, what queries open up
-- **Detection as backstop, not primary control** — the L3 layer's role and limits
+- [What is Neksur?](../intro/what-is-neksur.md) — the one-page overview these concepts expand on.
+- [Architecture Overview](../architecture/overview.md) — how the concepts are realized in code.
+- [Getting Started](../getting-started/install-and-first-policy.md) — what a Contract looks like in practice.
 
 Have a concept you'd like documented? Open an issue.

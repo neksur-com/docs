@@ -2,9 +2,11 @@
 
 # Deployment
 
-This is the canonical guide for deploying Neksur Core to production AWS. It covers the Phase 0 + Phase 1 surface — the metadata graph, the L1 Catalog Gateway, OpenLineage ingestion, and the in-process L3 detection pool — running as a stateless `cmd/neksur-server` binary behind an Application Load Balancer.
+This is the canonical guide for deploying Neksur to production AWS. It covers the commit data path in depth — the metadata graph, the catalog gateway, OpenLineage ingestion, and the in-process detection pool — running as a stateless `cmd/neksur-server` binary behind an Application Load Balancer. The same binary also serves the read-path SQL proxy, `pgwire`, XMLA, GraphQL, and MCP surfaces; the operational concerns below (HA, fail-closed alerting, health checks, backup/DR) apply to the whole process.
 
-The target audience is the SRE / platform team operating Neksur for a single tenant or a small fleet of design-partner tenants. Multi-region and managed-service deployments are roadmap items (see [What's planned](#whats-planned-roadmap) at the end).
+For the **infrastructure-as-code**, **deployment modes** (SaaS / self-managed / air-gapped), and the **Spark writer-side integration**, see the new sections near the end of this guide. The target audience is the SRE / platform team operating Neksur for a single tenant or a small fleet of tenants.
+
+> **Editions.** Neksur is a single binary; commercial-tier coordination (multi-engine, defense-in-depth, intelligence) is unlocked by a signed license verified at startup — there is no separate build to deploy. See [Editions and tiers](../concepts/editions.md).
 
 > **Companion docs.** Read [Architecture](../architecture/overview.md) before this guide — the three-layer enforcement model and the AGE graph foundation set the context for every infrastructure choice below. After install, see [Getting Started](../getting-started/install-and-first-policy.md) for the end-to-end dev flow and the [REST API Reference](../reference/rest-api.md) for the endpoint surface the gateway exposes.
 
@@ -354,6 +356,57 @@ Specific secrets operators should rotate:
 
 The rotation runbook contains the per-secret step-by-step procedure and the validation commands operators run after each rotation.
 
+## Infrastructure as code (`neksur-infra`)
+
+The production AWS infrastructure lives in the private [`neksur-com/neksur-infra`](https://github.com/neksur-com/neksur-infra) Terraform repository (Terraform ≥ 1.7, AWS provider ~> 5.86). It provisions a single-region (`us-east-1`) topology:
+
+| Module | Provisions |
+|--------|------------|
+| `vpc` | 10.0.0.0/16 across 3 AZs, public + private subnets, single NAT (cost-optimized), DNS hostnames enabled (required for customer VPC peering). |
+| `rds-pool-a` | **Postgres-on-EC2** HA cluster — Patroni-managed (etcd leader election), Graviton instances + EBS, Postgres 16 + Apache AGE + pgaudit, pgBackRest to S3 (7-day full + 35-day WAL → 35-day PITR window). Postgres-on-EC2 rather than managed RDS because AGE is a non-standard extension. |
+| `rds-pool-b` | Dedicated standby pool for tenants whose workload exceeds the Pool A envelope; activated when the first dedicated-pool tenant arrives. |
+| `ec2-host` | Application Auto Scaling Group (Docker Compose runtime, IMDSv2 enforced) across private subnets. |
+| `alb-nlb` | Public ALB (HTTPS 443) + internal NLB (for the `pgwire` 5432 read path); ACM cert pinning the app / admin / sql / lineage / status hostnames. |
+| `private-ca` | Self-signed root CA + per-customer subordinate CAs for mTLS; keys in Secrets Manager (KMS). |
+| `observability` | CloudWatch Alarms → SNS → PagerDuty bridge (Lambda) → StatusPage. |
+| `billing-secrets` | KMS-encrypted Secrets Manager slots (WorkOS, Stripe, PagerDuty, StatusPage, Slack), populated post-apply. |
+| `customer-peering` | VPC peering (Neksur side); customers consume a shared peering module on their side. |
+
+State is in S3 (`neksur-tfstate`) with a DynamoDB lock table; secrets are passed via `TF_VAR_*` env vars, never committed to `terraform.tfvars`. Deploy is the standard `terraform init && terraform plan -out && terraform apply`, gated in CI by `terraform-plan.yml` (PR) and `terraform-apply.yml` (protected merge).
+
+> Older revisions of this guide referred to this repository as `neksur-com/infra`; the repository is **`neksur-com/neksur-infra`**.
+
+## Deployment modes
+
+Neksur runs in three modes from the same binary:
+
+- **SaaS (AWS).** The topology documented above — pooled multi-tenancy, WorkOS auth, the `neksur-infra` Terraform. This is the reference deployment.
+- **Self-managed.** Operators run `neksur-server` against their own Postgres 16 + AGE and their own Iceberg catalog, behind their own ingress. The HA, health-check, backup/DR, and observability guidance above applies unchanged.
+- **Air-gapped / on-prem.** A zero-internet deployment: no CDN dependencies in the web build, an offline **signed license file** (no license-server callout), OIDC-based governance authz (admin role injected from the OIDC `roles` claim), and a self-contained demo/bootstrap path. The build integrity gate ensures the distributed artifact has no outbound network requirements.
+
+## Spark writer-side integration
+
+For the Defense-in-Depth write path, Spark applies Neksur Access transforms *before* writes hit object storage, via the [`neksur-com/neksur-spark-policy`](https://github.com/neksur-com/neksur-spark-policy) library (Scala 2.12 / Spark 3.5 / Iceberg 1.6.x / JDK 17). Two equivalent frontends call the same transform library:
+
+**Silent — Catalyst extension** (intercepts all governed writes):
+
+```bash
+spark-submit \
+  --conf spark.sql.extensions=com.neksur.spark.policy.NeksurEnforcementExtension \
+  --conf spark.neksur.policy.endpoint='https://api.neksur.example.com/v1/policy' \
+  --conf spark.neksur.policy.token='<bearer_token>' \
+  app.jar
+```
+
+**Explicit — SDK** (opt-in per write):
+
+```scala
+import com.neksur.spark.policy.NeksurDataFrameWriter
+new NeksurDataFrameWriter(df, "sales.orders").append()
+```
+
+Both paths are **fail-closed**: any failure fetching the transform plan raises a `SparkException` and aborts the write — no governed write proceeds without a successfully applied policy. A CI parity gate (`ExtensionVsSdkParitySpec`) proves the two paths produce byte-identical Parquet. Iceberg connector version drift matters: a mismatched `iceberg-spark-runtime` silently disables write interception, so pin the runtime jar to the supported version.
+
 ## What's planned (roadmap)
 
 Future phases extend the deployment surface in the following directions:
@@ -372,4 +425,4 @@ Operators evaluating Neksur today should target a single-region production deplo
 
 ---
 
-*Phase 0 + Phase 1 deployment guide. Updated 2026-05-15.*
+*Deployment guide. Updated 2026-06-06 to cover the full Core surface, infrastructure-as-code, deployment modes, and the Spark integration.*
