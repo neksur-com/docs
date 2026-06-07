@@ -43,16 +43,18 @@ Neksur **Core** (BSL) provides:
 
 ## Documentation map
 
-- [Introduction](./docs/intro/what-is-neksur.md) — what Neksur is, who it's for, status.
-- [Concepts](./docs/concepts/README.md) — the Data Contract, the three dimensions, the lifecycle, the enforcement model, and the editions.
-- [Architecture overview](./docs/architecture/overview.md) — system design, the commit pipeline, the graph schema, the API surface, and the ADR index.
-- [Getting started](./docs/getting-started/install-and-first-policy.md) — from zero to a policy rejecting a non-compliant commit.
-- [Guides](./docs/guides/README.md) — task-oriented how-tos: connect Spark / Trino / BI / AI agents, author policies and metrics, ship a Contract, prove compliance.
-- [REST API reference](./docs/reference/rest-api.md) — gateway, lineage, and admin endpoints; the broader API surface.
-- [CLI & binaries reference](./docs/reference/cli.md) — `neksur-cli`, the server, and the operator tools.
-- [Policy language reference](./docs/reference/policy-language.md) — the CEL evaluation environment.
-- [Deployment](./docs/operations/deploy.md) — production deploy, HA, backup/DR, infrastructure, and the Spark integration.
-- [Licensing](./docs/licensing/README.md) — editions, tiers, and the BSL.
+The rendered docs live at **[docs.neksur.com](https://docs.neksur.com)**. Source for each section is under [`src/content/docs/`](./src/content/docs/).
+
+- [Introduction](https://docs.neksur.com/intro/what-is-neksur/) — what Neksur is, who it's for, status.
+- [Concepts](https://docs.neksur.com/concepts/) — the Data Contract, the three dimensions, the lifecycle, the enforcement model, and the editions.
+- [Architecture overview](https://docs.neksur.com/architecture/overview/) — system design, the commit pipeline, the graph schema, the API surface, and the ADR index.
+- [Getting started](https://docs.neksur.com/getting-started/install-and-first-policy/) — from zero to a policy rejecting a non-compliant commit.
+- [Guides](https://docs.neksur.com/guides/) — task-oriented how-tos: connect Spark / Trino / BI / AI agents, author policies and metrics, ship a Contract, prove compliance.
+- [REST API reference](https://docs.neksur.com/reference/rest-api/) — gateway, lineage, and admin endpoints; the broader API surface.
+- [CLI & binaries reference](https://docs.neksur.com/reference/cli/) — `neksur-cli`, the server, and the operator tools.
+- [Policy language reference](https://docs.neksur.com/reference/policy-language/) — the CEL evaluation environment.
+- [Deployment](https://docs.neksur.com/operations/deploy/) — production deploy, HA, backup/DR, infrastructure, and the Spark integration.
+- [Licensing](https://docs.neksur.com/licensing/) — editions, tiers, and the BSL.
 
 ## License
 
@@ -73,22 +75,45 @@ This is the **Neksur Documentation** repository. Related repositories under the 
 | `neksur-com/neksur-infra` | private | proprietary | AWS Terraform infrastructure |
 | `neksur-com/docs` (this repo) | public | Apache 2.0 | Public documentation |
 
-## Documentation structure
+## Site framework
+
+The site is built with **[Astro](https://astro.build) + [Starlight](https://starlight.astro.build)** and deployed as a static site to **Cloudflare Pages**. All prose is Markdown/MDX under `src/content/docs/`; navigation lives in `astro.config.mjs`.
 
 ```
-docs/
+src/content/docs/
+├── index.mdx          # Landing (splash)
 ├── intro/             # What is Neksur, who is it for, status
 ├── concepts/          # Data Contract, dimensions, lifecycle, enforcement, editions
 ├── architecture/      # System design, commit pipeline, graph schema, ADR index
 ├── getting-started/   # Install, connect a catalog, write your first policy
-├── reference/         # API docs (REST, GraphQL, MCP, SQL proxy)
-├── guides/            # How-to: integrate Spark, integrate Trino, compliance
+├── guides/            # How-to: connect Spark/Trino/BI/AI, author policies & metrics, ship a Contract, prove
+├── reference/         # REST API, CLI & binaries, policy language (CEL)
 ├── operations/        # Deploy, scale, monitor, backup/restore, DR, infrastructure
 ├── licensing/         # BSL, commercial tiers, design partner program
 └── examples/          # End-to-end scenarios, sample policies, sample workloads
 ```
 
-The static-site framework is chosen alongside the public distribution milestone (candidates: Astro Starlight, Hugo + Doks, MkDocs Material).
+(Each section's `index.md` is its landing page; e.g. `concepts/index.md` → `/concepts/`.)
+
+## Develop & build
+
+Requires Node (see [`.nvmrc`](.nvmrc)).
+
+```bash
+npm install      # install dependencies
+npm run dev      # local dev server with hot reload
+npm run build    # static build to ./dist (also builds the Pagefind search index)
+npm run preview  # preview the production build locally
+```
+
+To add a page: create a Markdown file with `title` frontmatter under `src/content/docs/<section>/`, then add it to the `sidebar` in `astro.config.mjs`. Use root-relative links between pages (e.g. `/concepts/dimensions/`).
+
+## Deploy
+
+The site deploys to **Cloudflare Pages** (project `neksur-docs`, custom domain `docs.neksur.com`). Two paths:
+
+1. **CI (this repo).** [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) builds on every push/PR and deploys `dist/` to Cloudflare Pages on push to `main`. It requires repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+2. **Cloudflare Pages Git integration.** Connect this repo in the Cloudflare dashboard with build command `npm run build`, output directory `dist`, and `NODE_VERSION=22`.
 
 ## Contributing
 
@@ -102,4 +127,4 @@ Documentation contributions use a lightweight process — see [`CONTRIBUTING.md`
 
 ---
 
-*Documentation site scaffold initialized 2026-05-12. Reframed to the Data Contract Plane model 2026-06-06. Site publication target: the public distribution milestone of the Neksur roadmap.*
+*Documentation site scaffold initialized 2026-05-12. Reframed to the Data Contract Plane model 2026-06-06. Astro Starlight site stood up (docs.neksur.com) 2026-06-07.*

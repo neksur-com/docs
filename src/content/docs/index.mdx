@@ -1,0 +1,56 @@
+---
+title: Neksur Documentation
+description: The Data Contract Plane for open lakehouses on Apache Iceberg — govern Meaning, Access, and State across every engine.
+template: splash
+hero:
+  tagline: The Data Contract Plane for open lakehouses on Apache Iceberg. One Contract per dataset — Meaning, Access, and State — honored by every engine, catalog, and AI agent.
+  actions:
+    - text: What is Neksur?
+      link: /intro/what-is-neksur/
+      icon: right-arrow
+      variant: primary
+    - text: Get started
+      link: /getting-started/install-and-first-policy/
+      icon: rocket
+    - text: View on GitHub
+      link: https://github.com/neksur-com/neksur
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+## Start here
+
+<CardGrid stagger>
+  <Card title="Understand the model" icon="open-book">
+    Neksur governs each dataset through one **Data Contract** binding three
+    coupled dimensions — Meaning, Access, State — over one lifecycle.
+    [Read the concepts →](/concepts/)
+  </Card>
+  <Card title="Ship your first policy" icon="rocket">
+    Install Neksur, point it at a catalog, and reject a non-compliant Iceberg
+    commit in ~30 minutes.
+    [Getting started →](/getting-started/install-and-first-policy/)
+  </Card>
+  <Card title="Connect your engines" icon="puzzle">
+    Route Spark writes through the gateway, and Trino / BI / AI-agent reads
+    through the policy-enforcing proxy.
+    [Connection guides →](/guides/)
+  </Card>
+  <Card title="Reference" icon="setting">
+    The REST API, the `neksur-cli`, and the CEL policy language.
+    [Browse the reference →](/reference/rest-api/)
+  </Card>
+</CardGrid>
+
+## Explore
+
+<CardGrid>
+  <LinkCard title="Concepts" href="/concepts/" description="Data Contract, dimensions, lifecycle, enforcement, editions." />
+  <LinkCard title="Guides" href="/guides/" description="Connect engines, author policies and metrics, ship a Contract, prove compliance." />
+  <LinkCard title="Architecture" href="/architecture/overview/" description="System design, the commit pipeline, the graph, the ADR index." />
+  <LinkCard title="Deployment" href="/operations/deploy/" description="Production deploy, HA, backup/DR, infrastructure, Spark." />
+  <LinkCard title="Licensing" href="/licensing/" description="Editions, the four additive tiers, and the BSL." />
+  <LinkCard title="REST API" href="/reference/rest-api/" description="Gateway, lineage, and the broader API surface." />
+</CardGrid>
