@@ -1,0 +1,3 @@
+# Cloudflare Workers Static Assets ignore file.
+# Astro copies public/* into dist/, so this lands at dist/.assetsignore
+# (the assets-directory root). Empty rule set = upload everything in dist.

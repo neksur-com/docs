@@ -110,10 +110,16 @@ To add a page: create a Markdown file with `title` frontmatter under `src/conten
 
 ## Deploy
 
-The site deploys to **Cloudflare Pages** (project `neksur-docs`, custom domain `docs.neksur.com`). Two paths:
+The site deploys to **Cloudflare (Workers static assets)** — Worker `neksur-docs`, custom domain `docs.neksur.com`. Config is [`wrangler.jsonc`](wrangler.jsonc): it serves the static `./dist` directory directly (no server code), with the prebuilt `404.html` for not-found handling. (This matches the `neksur-com/site` deploy model; the assets directory is `./dist`, **not** `public/`.)
 
-1. **CI (this repo).** [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) builds on every push/PR and deploys `dist/` to Cloudflare Pages on push to `main`. It requires repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
-2. **Cloudflare Pages Git integration.** Connect this repo in the Cloudflare dashboard with build command `npm run build`, output directory `dist`, and `NODE_VERSION=22`.
+```bash
+npm run deploy   # astro build && wrangler deploy   (needs CF auth)
+```
+
+Two automated paths:
+
+1. **CI (this repo).** [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) builds on every push/PR and runs `wrangler deploy` on push to `main`. It requires repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`; until those are set, CI still builds (deploy step is skipped).
+2. **Cloudflare Workers Builds (dashboard).** Connect this repo with build command `npm run build` and deploy command `wrangler deploy` (the assets directory comes from `wrangler.jsonc`, so it must be `./dist`). Set `NODE_VERSION=22`.
 
 ## Contributing
 

@@ -37,10 +37,10 @@ jobs:
 
       # Deploy to Cloudflare Pages only on push to main, and only when the
       # Cloudflare secrets are configured on the repository.
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare (Workers static assets)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.CF_API_TOKEN != ''
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=neksur-docs --branch=main
+          command: deploy

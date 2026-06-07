@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "neksur-docs",
+  "compatibility_date": "2026-06-07",
+  // Static Starlight site: Astro builds to ./dist. This is a static
+  // assets-only Worker (no `main` script) — Cloudflare serves the files
+  // in ./dist directly. `not_found_handling` serves the prebuilt 404 page.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
