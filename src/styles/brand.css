@@ -84,6 +84,28 @@ a.sl-link-button {
   border-radius: 6px;
 }
 
+/*
+ * Button colors — brand contract (brand-guide/components.md):
+ *   primary   = ocean fill, bone text, hover ocean-700
+ *   secondary = transparent, border-default
+ * Starlight derives the primary fill from --sl-color-text-accent, which we lift
+ * to ocean-300 on dark for link legibility — so pin the filled button to the
+ * brand's deep ocean explicitly in both themes (don't let it go pale on dark).
+ */
+a.sl-link-button.primary,
+a.sl-link-button.primary:hover {
+  background: #065a82; /* ocean — locked primary */
+  border-color: #065a82;
+  color: #f1f7ed; /* bone */
+}
+a.sl-link-button.primary:hover {
+  background: #054b6b; /* ocean-700 */
+  border-color: #054b6b;
+}
+a.sl-link-button.secondary {
+  border-color: var(--sl-color-hairline-light); /* brand border-default */
+}
+
 /* Brand display font for headings + site title (body stays Inter). */
 :is(h1, h2, h3, h4, h5, h6),
 .site-title,
