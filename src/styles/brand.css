@@ -111,6 +111,55 @@ a.sl-link-button.secondary {
 .site-title,
 .sl-markdown-content :is(h1, h2, h3, h4, h5, h6) {
   font-family: "Manrope", var(--sl-font);
-  font-weight: 700;
   letter-spacing: -0.014em;
+}
+/* Brand heading weights: display/h1/h2 = 700, h3–h6 = 600. */
+:is(h1, h2),
+.sl-markdown-content :is(h1, h2) {
+  font-weight: 700;
+}
+:is(h3, h4, h5, h6),
+.sl-markdown-content :is(h3, h4, h5, h6) {
+  font-weight: 600;
+}
+
+/*
+ * Brand type scale — heading sizes (Starlight defaults run larger than brand).
+ * Brand: h1 32px · h2 24px · h3 20px · h4 18px · h5 16px. Body stays 16px,
+ * code 14px (Starlight defaults already match). Unlayered → wins over
+ * Starlight's @layer rules across breakpoints.
+ */
+:root {
+  --sl-text-h1: 2rem; /* 32px */
+  --sl-text-h2: 1.5rem; /* 24px */
+  --sl-text-h3: 1.25rem; /* 20px */
+  --sl-text-h4: 1.125rem; /* 18px */
+  --sl-text-h5: 1rem; /* 16px */
+
+  /* Brand radii only — 3 / 6 / 10 px. Drive the component radius variables. */
+  --ec-brdRad: 6px; /* code blocks (Expressive Code) */
+  --pagefind-ui-border-radius: 6px; /* search results */
+  --sl-search-corners: 6px; /* search modal corners */
+}
+
+/*
+ * Shapes — brand allows only 3 / 6 / 10 px radii (no pills).
+ * 6px: cards, asides, toggles (default). 3px: badges, kbd, small chips.
+ * 10px: modals/dialogs (large surfaces).
+ */
+.card,
+.starlight-aside,
+.toggle,
+starlight-tabs .tablist-wrapper ::after {
+  border-radius: 6px;
+}
+.sl-badge,
+kbd,
+button > kbd,
+.expressive-code .copy button,
+.expressive-code .copy .feedback {
+  border-radius: 3px;
+}
+dialog {
+  border-radius: 10px;
 }
