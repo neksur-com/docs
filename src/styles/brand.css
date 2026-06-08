@@ -1,0 +1,85 @@
+/*
+ * Neksur brand theme for Starlight.
+ *
+ * Maps Starlight's CSS custom properties onto the canonical Neksur brand
+ * tokens (neksur-com/brand · design-tokens/colors_and_type.css). Dark is the
+ * default `:root`; light is `:root[data-theme="light"]`. Starlight already
+ * switches by system preference + a manual toggle.
+ *
+ * Brand palette used here:
+ *   Ocean (accent): 600 #065A82 · 700 #054B6B · 400 #3A85A4 · 300 #6FA4BB · 200 #A5C7D6 · 100 #D2E3EB · 800 #043D55
+ *   Navy #21295C · Slate ramp · Bone #F1F7ED · Paper #FBFCF8
+ *   Dark surfaces: bg #131933 · elevated #1B2349 · sunk #0C1226
+ *   Dark text: #E8E5DC / #B5BCD0 / #7B85A0 / #4A5575
+ *   Dark borders: #2A3260 / #3D4677 / #5C679A
+ *   Warm (ember): #C8754A · warm-text on dark #E29B73
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+:root {
+  --sl-font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --sl-font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* ---- Dark theme (default) — canonical brand dark ---- */
+  --sl-color-accent-low: #043d55; /* ocean-800 */
+  --sl-color-accent: #3a85a4; /* ocean-400 */
+  --sl-color-accent-high: #6fa4bb; /* ocean-300 */
+  --sl-color-text-accent: #6fa4bb; /* ocean-300 — links lift on dark */
+
+  --sl-color-white: #e8e5dc; /* headings / highest contrast (fg-1) */
+  --sl-color-gray-1: #e8e5dc;
+  --sl-color-gray-2: #b5bcd0; /* body text (fg-2) */
+  --sl-color-gray-3: #7b85a0; /* muted (fg-3) */
+  --sl-color-gray-4: #5c679a; /* border-strong */
+  --sl-color-gray-5: #3d4677; /* border-default */
+  --sl-color-gray-6: #1b2349; /* elevated surface */
+  --sl-color-black: #131933; /* page background */
+
+  --sl-color-bg: #131933;
+  --sl-color-bg-nav: #1b2349;
+  --sl-color-bg-sidebar: #0c1226;
+  --sl-color-bg-inline-code: #1b2349;
+  --sl-color-hairline: #2a3260;
+  --sl-color-hairline-light: #3d4677;
+  --sl-color-hairline-shade: #0c1226;
+
+  --sl-color-text: #b5bcd0;
+}
+
+:root[data-theme="light"] {
+  /* ---- Light theme — canonical brand light ---- */
+  --sl-color-accent-low: #d2e3eb; /* ocean-100 tint */
+  --sl-color-accent: #065a82; /* ocean-600 (locked primary) */
+  --sl-color-accent-high: #054b6b; /* ocean-700 */
+  --sl-color-text-accent: #065a82; /* ocean-600 */
+
+  --sl-color-white: #21295c; /* headings — navy */
+  --sl-color-gray-1: #21295c; /* navy */
+  --sl-color-gray-2: #475569; /* slate-600 — body text */
+  --sl-color-gray-3: #64748b; /* slate-500 — muted */
+  --sl-color-gray-4: #94a3b8; /* slate-400 */
+  --sl-color-gray-5: #cbd5e1; /* slate-300 — borders */
+  --sl-color-gray-6: #e2e8f0; /* slate-200 — surfaces */
+  --sl-color-gray-7: #f1f5f9; /* slate-100 */
+  --sl-color-black: #fbfcf8; /* page background — paper */
+
+  --sl-color-bg: #fbfcf8;
+  --sl-color-bg-nav: #f1f7ed; /* bone */
+  --sl-color-bg-sidebar: #f1f7ed;
+  --sl-color-bg-inline-code: #eef0f4;
+  --sl-color-hairline: #d7dde2;
+  --sl-color-hairline-light: #b0b7bf;
+  --sl-color-hairline-shade: #e2e8f0;
+
+  --sl-color-text: #475569;
+}
+
+/* Brand display font for headings + site title (body stays Inter). */
+:is(h1, h2, h3, h4, h5, h6),
+.site-title,
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6) {
+  font-family: "Manrope", var(--sl-font);
+  font-weight: 700;
+  letter-spacing: -0.014em;
+}

@@ -20,6 +20,8 @@ export default defineConfig({
       description:
         "The Data Contract Plane for open lakehouses on Apache Iceberg.",
       tagline: "The Data Contract Plane for open lakehouses",
+      // Brand theme: maps Starlight CSS vars to canonical Neksur brand tokens.
+      customCss: ["./src/styles/brand.css"],
       social: [
         {
           icon: "github",
