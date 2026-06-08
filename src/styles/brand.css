@@ -75,6 +75,15 @@
   --sl-color-text: #475569;
 }
 
+/*
+ * Button shape — brand contract allows only radii 3 / 6 / 10 px (no pills).
+ * Starlight's link buttons default to border-radius:999rem (pill); buttons use
+ * the brand 6px radius. `a.sl-link-button` outranks Starlight's `:where()` rule.
+ */
+a.sl-link-button {
+  border-radius: 6px;
+}
+
 /* Brand display font for headings + site title (body stays Inter). */
 :is(h1, h2, h3, h4, h5, h6),
 .site-title,
