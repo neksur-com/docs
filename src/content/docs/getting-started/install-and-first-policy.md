@@ -1,5 +1,5 @@
 ---
-title: "Getting Started: Install and Your First Policy"
+title: "Getting Started: Install and Your First Contract"
 description: "This is the canonical first thirty minutes with Neksur. By the end you will have a local Neksur Core stack running against a Polaris testcontainer, a…"
 ---
 
