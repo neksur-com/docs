@@ -6,6 +6,14 @@ import starlight from "@astrojs/starlight";
 // Static Starlight site, deployed to Cloudflare Pages (build → ./dist).
 export default defineConfig({
   site: "https://docs.neksur.com",
+  // Permanent redirect from the old slug after the page was renamed
+  // "first policy" → "first contract".
+  redirects: {
+    "/getting-started/install-and-first-policy/":
+      "/getting-started/install-and-first-contract/",
+    "/getting-started/install-and-first-policy":
+      "/getting-started/install-and-first-contract/",
+  },
   integrations: [
     starlight({
       title: "Neksur Docs",
@@ -30,7 +38,7 @@ export default defineConfig({
         },
         {
           label: "Getting started",
-          items: [{ slug: "getting-started/install-and-first-policy" }],
+          items: [{ slug: "getting-started/install-and-first-contract" }],
         },
         {
           label: "Concepts",

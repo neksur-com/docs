@@ -48,7 +48,7 @@ The rendered docs live at **[docs.neksur.com](https://docs.neksur.com)**. Source
 - [Introduction](https://docs.neksur.com/intro/what-is-neksur/) — what Neksur is, who it's for, status.
 - [Concepts](https://docs.neksur.com/concepts/) — the Data Contract, the three dimensions, the lifecycle, the enforcement model, and the editions.
 - [Architecture overview](https://docs.neksur.com/architecture/overview/) — system design, the commit pipeline, the graph schema, the API surface, and the ADR index.
-- [Getting started](https://docs.neksur.com/getting-started/install-and-first-policy/) — from zero to a policy rejecting a non-compliant commit.
+- [Getting started](https://docs.neksur.com/getting-started/install-and-first-contract/) — from zero to a policy rejecting a non-compliant commit.
 - [Guides](https://docs.neksur.com/guides/) — task-oriented how-tos: connect Spark / Trino / BI / AI agents, author policies and metrics, ship a Contract, prove compliance.
 - [REST API reference](https://docs.neksur.com/reference/rest-api/) — gateway, lineage, and admin endpoints; the broader API surface.
 - [CLI & binaries reference](https://docs.neksur.com/reference/cli/) — `neksur-cli`, the server, and the operator tools.

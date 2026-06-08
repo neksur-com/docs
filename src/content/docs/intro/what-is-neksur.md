@@ -135,7 +135,7 @@ The hosted documentation site goes live alongside the public distribution milest
 
 - **[Concepts](/concepts/)** — the Data Contract, the three dimensions, the lifecycle, and the enforcement model, explained from first principles.
 - **[Architecture](/architecture/overview/)** — the full system design, layer by layer, with the graph schema and the commit pipeline.
-- **[Getting Started](/getting-started/install-and-first-policy/)** — install Neksur, point it at a catalog, and author your first commit-time policy.
+- **[Getting Started](/getting-started/install-and-first-contract/)** — install Neksur, point it at a catalog, and author your first commit-time policy.
 - **[Guides](/guides/)** — how to connect Spark / Trino / BI / AI agents, author policies and metrics, ship a Contract, and prove compliance.
 - **[REST API Reference](/reference/rest-api/)** — the gateway, lineage, and admin surfaces. See also the [CLI](/reference/cli/) and [policy language](/reference/policy-language/) references.
 - **[Deployment](/operations/deploy/)** — production deploy, HA, backup/DR, infrastructure, and the Spark integration.

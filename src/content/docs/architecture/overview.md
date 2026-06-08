@@ -288,7 +288,7 @@ If you're evaluating Neksur today, the highest-leverage starting point remains *
 
 ## Where to next
 
-- [Getting Started](/getting-started/install-and-first-policy/) — install Neksur, configure a Polaris or Nessie catalog, write your first policy.
+- [Getting Started](/getting-started/install-and-first-contract/) — install Neksur, configure a Polaris or Nessie catalog, write your first policy.
 - [REST API Reference](/reference/rest-api/) — full endpoint surface, request/response shapes, status codes.
 - [Concepts: Write-Path Enforcement](/concepts/) — how policies are evaluated, fail-closed semantics, audit trail shape.
 - [Deployment](/operations/deploy/) — production deployment, observability, scaling considerations.

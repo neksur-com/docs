@@ -3,7 +3,7 @@ title: "Guides"
 description: "Task-oriented how-to guides. Each one walks a single job end-to-end. If you're new, do Getting Started first (install + your first commit-time policy in…"
 ---
 
-Task-oriented how-to guides. Each one walks a single job end-to-end. If you're new, do [Getting Started](/getting-started/install-and-first-policy/) first (install + your first commit-time policy in ~30 minutes), then come back here.
+Task-oriented how-to guides. Each one walks a single job end-to-end. If you're new, do [Getting Started](/getting-started/install-and-first-contract/) first (install + your first commit-time policy in ~30 minutes), then come back here.
 
 The guides are grouped by the three buyer jobs — **Define**, **Enforce**, **Prove** — plus connectivity and operations.
 

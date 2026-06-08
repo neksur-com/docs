@@ -9,7 +9,7 @@ End-to-end scenarios with runnable code — sample Contracts, sample policies, s
 
 This section is being populated. For worked examples available right now, see:
 
-- [Getting Started](/getting-started/install-and-first-policy/) — a complete walkthrough with a schema policy, curl requests against the gateway, and audit-trail inspection.
+- [Getting Started](/getting-started/install-and-first-contract/) — a complete walkthrough with a schema policy, curl requests against the gateway, and audit-trail inspection.
 - [Guides](/guides/) — end-to-end how-tos with copy-pasteable config: [connect Spark](/guides/connect-spark-write-path/), [connect Trino/BI](/guides/connect-read-path/), [author Access policies](/guides/author-access-policies/), [author metrics](/guides/author-semantic-metrics/), [ship a Contract](/guides/author-and-ship-a-contract/).
 - [Policy language reference](/reference/policy-language/) — copy-pasteable CEL expressions.
 - [REST API Reference](/reference/rest-api/) — curl examples for the gateway, lineage, and webhook endpoints.

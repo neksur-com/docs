@@ -9,7 +9,7 @@ For the **infrastructure-as-code**, **deployment modes** (SaaS / self-managed / 
 
 > **Editions.** Neksur is a single binary; commercial-tier coordination (multi-engine, defense-in-depth, intelligence) is unlocked by a signed license verified at startup — there is no separate build to deploy. See [Editions and tiers](/concepts/editions/).
 
-> **Companion docs.** Read [Architecture](/architecture/overview/) before this guide — the three-layer enforcement model and the AGE graph foundation set the context for every infrastructure choice below. After install, see [Getting Started](/getting-started/install-and-first-policy/) for the end-to-end dev flow and the [REST API Reference](/reference/rest-api/) for the endpoint surface the gateway exposes.
+> **Companion docs.** Read [Architecture](/architecture/overview/) before this guide — the three-layer enforcement model and the AGE graph foundation set the context for every infrastructure choice below. After install, see [Getting Started](/getting-started/install-and-first-contract/) for the end-to-end dev flow and the [REST API Reference](/reference/rest-api/) for the endpoint surface the gateway exposes.
 
 ## Prerequisites
 
@@ -150,7 +150,7 @@ Per-tenant catalog credentials (the upstream Polaris / Nessie URL, OAuth client_
 
 ## Tenant onboarding workflow
 
-For the local-dev / single-tenant flow — provisioning a tenant, pointing Spark at the gateway, authoring a first policy — see [Getting Started](/getting-started/install-and-first-policy/).
+For the local-dev / single-tenant flow — provisioning a tenant, pointing Spark at the gateway, authoring a first policy — see [Getting Started](/getting-started/install-and-first-contract/).
 
 For the production multi-tenant flow — the 12-step idempotent provisioning script that creates the per-tenant schema, seeds catalog credentials, and registers the tenant in WorkOS — see the source-repo runbook:
 
@@ -421,7 +421,7 @@ Operators evaluating Neksur today should target a single-region production deplo
 ## Where to next
 
 - [Architecture](/architecture/overview/) — the three-layer enforcement model and the per-commit pipeline that runs inside each replica.
-- [Getting Started](/getting-started/install-and-first-policy/) — point Spark at a freshly deployed gateway and author your first policy.
+- [Getting Started](/getting-started/install-and-first-contract/) — point Spark at a freshly deployed gateway and author your first policy.
 - [REST API Reference](/reference/rest-api/) — full endpoint surface, request/response shapes, HTTP status codes.
 
 ---

@@ -17,6 +17,6 @@ In-depth explanations of the ideas Neksur is built on — what a **Data Contract
 
 - [What is Neksur?](/intro/what-is-neksur/) — the one-page overview these concepts expand on.
 - [Architecture Overview](/architecture/overview/) — how the concepts are realized in code.
-- [Getting Started](/getting-started/install-and-first-policy/) — what a Contract looks like in practice.
+- [Getting Started](/getting-started/install-and-first-contract/) — what a Contract looks like in practice.
 
 Have a concept you'd like documented? Open an issue.

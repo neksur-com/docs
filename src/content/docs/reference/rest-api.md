@@ -421,4 +421,4 @@ The four endpoints above are documented here in full because they carry the comm
 
 When integrating, treat the gateway/lineage/webhook contracts on this page as stable; for the other surfaces, generate against `internal/api/openapi.yml` (REST) or the GraphQL schema, which are the source of truth.
 
-See [Getting Started](/getting-started/install-and-first-policy/) for the supported integration path today (deploy `neksur-server`, point Spark / Trino at the gateway and read-path proxy, register policies via the admin CLI).
+See [Getting Started](/getting-started/install-and-first-contract/) for the supported integration path today (deploy `neksur-server`, point Spark / Trino at the gateway and read-path proxy, register policies via the admin CLI).
