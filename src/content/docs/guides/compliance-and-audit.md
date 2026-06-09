@@ -53,13 +53,13 @@ Read traffic through the proxy is metered, so cost can be attributed per engine,
 1. **Lineage** shows which engines touched which snapshots.
 2. The **audit chain** shows every decision and transition, provably unaltered.
 3. **Detection** shows what was caught and when.
-4. **DQ breaches** ([data quality](/guides/data-quality/)) show whether quality guarantees held.
+4. **DQ breaches** ([data quality — the Logical dimension of State](/guides/data-quality/)) show whether the Contract's quality guarantees held.
 5. **Sign-offs** in the Contract lifecycle show who approved each change.
 
 That bundle is what you hand an auditor — generated continuously, not reconstructed.
 
 ## See also
 
-- [Data quality contracts](/guides/data-quality/)
+- [Data quality (the Logical dimension of State)](/guides/data-quality/)
 - [The Contract lifecycle → Prove](/concepts/lifecycle/#the-three-buyer-jobs)
 - [CLI reference → neksur-verify-chain](/reference/cli/#neksur-verify-chain)

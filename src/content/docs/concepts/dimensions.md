@@ -40,7 +40,18 @@ Policy is **tag-scoped**: a column is classified once with a Tag, and a policy w
 
 ## State
 
-**State** guarantees that every engine sees the same *version* of the data and coordinates its mutations.
+**State** guarantees that every engine sees the same *version* of the data, coordinates its mutations, and keeps that data measurably healthy. State is the broadest dimension, and it splits two ways.
+
+### Contract-State vs Dataset-State
+
+- **Contract-State** is where the *agreement* is — the [lifecycle](/concepts/lifecycle/) stage of the Contract itself (`draft → review → compile → deploy → active → audit`). It tracks the agreement, not the bytes.
+- **Dataset-State** is the condition of the *data* the Contract owns, in two halves:
+  - **Physical** — files, snapshots, compaction, expiry, schema/partition evolution: which version exists and how engines coordinate mutating it.
+  - **Logical** — quality, classification, conformance, reconciliation: whether the data that exists is *healthy and means what it should*.
+
+This split is why "data quality" is not a separate object in Neksur — it is the **Logical** half of one Contract's Dataset-State. See [Data quality (the Logical dimension of State)](/guides/data-quality/).
+
+### Physical Dataset-State — version coordination
 
 Heterogeneous engines writing and reading the same Iceberg tables fight over table state in ways that are hard to debug:
 
@@ -50,7 +61,20 @@ Heterogeneous engines writing and reading the same Iceberg tables fight over tab
 - **Partition-spec versioning** — partition-spec evolution is tracked so a downgrade doesn't reject valid writes.
 - **Compaction coordination** — compaction windows are coordinated so an operator-held retention pin isn't expired by a default compaction job.
 
-Some State guarantees (snapshot pinning, schema/retention policy at the gateway) are in Neksur Core; the cross-engine coordination pieces (write-conflict, partition-spec evolution, compaction) are Commercial / Enterprise edition capabilities — see [Editions and tiers](/concepts/editions/).
+### Logical Dataset-State — measurable health
+
+The Logical half makes the data's *health* a property of the Contract: **freshness** (how recent the pinned data is), **volume** (row counts in an expected band), **conformance** (the schema the data must keep), **classification** (the sensitivity tags detection attaches to columns), and **reconciliation** (every engine agrees on the numbers). These are authored in the Contract's **State → Quality** view and checked at the [`deploy → active` gate](/concepts/lifecycle/#the-deploy--active-data-gate). Full treatment: [Data quality (the Logical dimension of State)](/guides/data-quality/).
+
+### The two State invariants
+
+Two **separate** guarantees keep the pinned snapshot honest. They are different mechanisms protecting different things — do not conflate them:
+
+- **Inv-A — pin-aware retention.** Garbage collection (snapshot expiry, compaction — *Physical* state) must not delete files reachable from a pinned snapshot. *Which files survive.*
+- **Inv-B — cross-engine reconciliation.** Every engine reads the *same* pinned snapshot identically and agrees on the numbers. *Which numbers agree.*
+
+Both anchor on the [durable pinned snapshot](/concepts/unified-contract-model/#the-durable-pinned-snapshot); see [the two invariants in the unified model](/concepts/unified-contract-model/#the-two-state-invariants).
+
+Some State guarantees (snapshot pinning, schema/retention policy at the gateway, the DQ engine) are in Neksur Core; the cross-engine coordination pieces (write-conflict, partition-spec evolution, compaction, reconciliation across additional engines) are Commercial / Enterprise edition capabilities — see [Editions and tiers](/concepts/editions/).
 
 ## Why they are coupled
 

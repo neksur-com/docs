@@ -21,7 +21,7 @@ The guides are grouped by the three buyer jobs — **Define**, **Enforce**, **Pr
 
 ## Prove — evidence and quality
 
-- **[Data quality contracts](/guides/data-quality/)** — freshness, volume, and cross-engine reconciliation checks with the DQ contract YAML.
+- **[Data quality (the Logical dimension of State)](/guides/data-quality/)** — freshness, volume, conformance, and cross-engine reconciliation as facets of one Contract's State — not a separate contract — checked at the `deploy → active` gate.
 - **[Compliance and audit](/guides/compliance-and-audit/)** — the tamper-evident audit chain, detection findings, FinOps cost attribution, and how to verify the chain offline.
 
 ## Use the product
