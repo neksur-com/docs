@@ -8,6 +8,7 @@ In-depth explanations of the ideas Neksur is built on — what a **Data Contract
 ## Concept pages
 
 - **[The Data Contract](/concepts/data-contract/)** — the central abstraction: one Contract per dataset, what it binds, and why a *contract* rather than a *policy*.
+- **[The unified contract model](/concepts/unified-contract-model/)** — how the Contract becomes the single *authoritative root* of a dataset's governance: graph-first authoring with a reconciled projection, grounded Meaning, tag-scoped Access, the durable pinned snapshot, and the lifecycle gate (ADR-017).
 - **[Meaning, Access, State](/concepts/dimensions/)** — the three coupled dimensions of every Contract, what each guarantees, and why they are co-equal rather than layered.
 - **[The Contract lifecycle](/concepts/lifecycle/)** — the `draft → review → compile → deploy → active → audit` state machine, sign-offs, and the three buyer jobs (Define / Enforce / Prove).
 - **[Enforcement model](/concepts/enforcement/)** — the coordinated points where the Contract is enforced (catalog gateway, writer-side transform, read-path proxy, credential vending, post-commit detection) and why defense-in-depth across them is the design point.

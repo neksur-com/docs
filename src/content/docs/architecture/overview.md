@@ -7,7 +7,7 @@ description: "Neksur is the Data Contract Plane for Apache Iceberg lakehouses: i
 
 Neksur is the **Data Contract Plane** for Apache Iceberg lakehouses: it governs each dataset through a single [Data Contract](/concepts/data-contract/) — binding [Meaning, Access, and State](/concepts/dimensions/) — and enforces that Contract at **several coordinated points** in the data path, backed by a tenant-scoped property graph. It places **policy at the point of mutation** — every commit passes through a write-path gateway that evaluates CEL policies before the upstream catalog sees the request — *and* at the point of consumption — a read-path SQL proxy that compiles the same Access policy into query traffic — with a detection sweep behind both as a backstop.
 
-The enforcement points (catalog gateway, read-path SQL proxy, writer-side Spark transform, credential vending, post-commit detection) are complementary rather than redundant. This document is the operator's-eye map of the moving parts — read it before installing. The [Enforcement model](/concepts/enforcement/) concept page explains *why* the design is multi-point; this page covers *how* it is wired.
+The enforcement points (catalog gateway, read-path SQL proxy, writer-side Spark transform, credential vending, post-commit detection) are complementary rather than redundant. The Contract that they all enforce is the **authoritative root** of the metadata graph — see [The Data Contract as authoritative root](#the-data-contract-as-authoritative-root-adr-017) below. This document is the operator's-eye map of the moving parts — read it before installing. The [Enforcement model](/concepts/enforcement/) concept page explains *why* the design is multi-point; this page covers *how* it is wired.
 
 > **Heritage note.** Earlier revisions of this document described an "L1 / L2 / L3" three-layer model where L2 was a *planned* read-path proxy. That naming collided with the write-path defense levels in ADR-003 and is no longer used in user-facing material; the read path is now part of Core. This page keeps the detailed L1-gateway and detection sections (they remain accurate) and describes the read path and the other points by name.
 
@@ -103,6 +103,18 @@ Every catalog snapshot, column, lineage edge, policy, and audit event Neksur kno
 - **AGE 1.6 quirks accepted:** AGE 1.6.0 does not implement `MERGE ... ON CREATE SET ... ON MATCH SET ...`. The codebase emulates these semantics via `WITH s SET s.x = COALESCE(s.x, $val)` patterns. Multi-`MERGE`-per-`cypher()`-call is also rejected, so multi-step writes dispatch as multiple `cypher()` invocations inside one transaction.
 
 Per-snapshot natural keys are `metadata_location` (the S3 URL of the snapshot's `metadata.json`) — globally unique by Iceberg's own design, so MERGE-on-this-key is collision-free without coordination.
+
+## The Data Contract as authoritative root (ADR-017)
+
+Above the raw graph, a single [Data Contract](/concepts/data-contract/) is the **authoritative root** of everything Neksur knows about a dataset. Its three dimensions — [Meaning, Access, and State](/concepts/dimensions/) — and every attestation about the dataset hang off that one root. The graph holds the Contract and the edges that connect it to its dimensions, and **those edges are the source of truth**.
+
+- **Authoring is graph-first.** A Contract's dimensions are written into the tenant-scoped graph inside one transaction, which also appends a durable outbox record. An async projector idempotently upserts the relational tables that serve the fast read path, and an hourly reconciliation sweep raises any graph⇄projection drift as a breach. This is a CQRS shape: the hot read path stays a fast relational read (not a live traversal), but it is *reconciled* against the authoritative graph rather than independently authored.
+- **Meaning is grounded.** Metrics connect to a glossary ontology (`MEANS` → `GlossaryTerm`, one definition per concept) and to the physical columns they are computed over (`COMPUTED_OVER`).
+- **Access is tag-scoped.** A column is classified once with a `Tag`; policy written against the tag compiles to per-table artifacts wherever the tag appears — *classify once, govern everywhere*. A metric inherits the sensitivity of its columns by default; declassification requires an explicit governance-steward attestation (a trust fact), never an automatic rule — and exact numbers are preserved.
+- **A durable pinned snapshot anchors attestation.** The agreed Iceberg snapshot is recorded as an event-sourced, append-only `PinEvent` stream (the current pin is a projection of the latest event), so quality, reconciliation, and compliance evidence anchor as-of *this* version of the data rather than "whatever is latest."
+- **The lifecycle gates promotion.** The `deploy → active` transition runs DQ checks plus cross-engine reconciliation against the pinned snapshot; posture is block + breach + escalate-breaking — a verified non-breaking change auto-advances, a breaking schema change escalates to human sign-off.
+
+See [The unified contract model](/concepts/unified-contract-model/) for the full treatment.
 
 ## Catalog adapter model (shipped — Phase 1)
 
@@ -269,6 +281,7 @@ The architecture is governed by a set of ADRs (published copies land in this sec
 | **ADR-004** | SaaS deployment — pooled multi-tenancy (schema-per-tenant + dedicated), connection isolation, AWS + customer VPC peering. |
 | **ADR-005** | MCP Cypher hardening — parameterized queries only, clause whitelist, per-query budgets, tenant RLS. |
 | **ADR-011** | Product concept & terminology — the Data Contract Plane; Meaning/Access/State; one lifecycle; Define/Enforce/Prove; the four additive tiers. |
+| **ADR-017** | The unified contract model — `DataContract` as the authoritative root; graph-first authoring + reconciled projection (CQRS); grounded Meaning; tag-scoped Access + steward-attested declassification; durable pinned snapshot; the `deploy → active` lifecycle gate. See [The unified contract model](/concepts/unified-contract-model/). |
 
 ## Catalog adapters and the roadmap
 

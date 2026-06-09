@@ -47,6 +47,7 @@ export default defineConfig({
           items: [
             { slug: "concepts" },
             { slug: "concepts/data-contract" },
+            { slug: "concepts/unified-contract-model" },
             { slug: "concepts/dimensions" },
             { slug: "concepts/lifecycle" },
             { slug: "concepts/enforcement" },

@@ -19,6 +19,8 @@ Neksur's Meaning dimension is a **semantic layer** with three properties:
 
 The acceptance bar is literal: golden-test results must match bit-for-bit across engines.
 
+Meaning is also **grounded**: a metric connects to a shared glossary concept (`MEANS` → `GlossaryTerm`) so the same concept has one definition tenant-wide, and to the physical columns it is computed over (`COMPUTED_OVER`) so it is anchored to real data. See [grounded Meaning](/concepts/unified-contract-model/#grounded-meaning).
+
 ## Access
 
 **Access** guarantees that one declarative policy is enforced *identically* on read and on write, at runtime, everywhere the data is reachable.
@@ -34,13 +36,15 @@ The policy is authored once and compiled to every enforcement point: the catalog
 
 This is the **primary wedge**. The April 2026 Databricks Unity Catalog limitation — row filters and column masks are not enforced through the Iceberg REST API — is the concrete, document-able gap the Access dimension closes.
 
+Policy is **tag-scoped**: a column is classified once with a Tag, and a policy written against the Tag is compiled down to per-table artifacts wherever that tag appears — *classify once, govern everywhere*. A metric inherits the sensitivity of the columns it is computed over by default, and removing that inherited sensitivity (declassification) requires an explicit governance-steward attestation, never an automatic rule. See [tag-scoped Access](/concepts/unified-contract-model/#tag-scoped-access--classify-once-govern-everywhere) and [declassification](/concepts/unified-contract-model/#declassification).
+
 ## State
 
 **State** guarantees that every engine sees the same *version* of the data and coordinates its mutations.
 
 Heterogeneous engines writing and reading the same Iceberg tables fight over table state in ways that are hard to debug:
 
-- **Snapshot pinning** — a consumer pins a snapshot for a reproducible read; State prevents another engine's `ExpireSnapshots` from silently deleting it out from under them.
+- **Snapshot pinning** — a consumer pins a snapshot for a reproducible read; State prevents another engine's `ExpireSnapshots` from silently deleting it out from under them. The Contract also carries a **durable pinned snapshot** — an event-sourced, as-of anchor (a `PinEvent` stream) that fixes which version of the data every attestation holds against, not "whatever is latest now." See [the durable pinned snapshot](/concepts/unified-contract-model/#the-durable-pinned-snapshot).
 - **Schema cache invalidation** — when one engine evolves the schema, others' caches are invalidated so they don't read stale column layouts.
 - **Write-conflict resolution** — a per-table policy (last-writer-wins, abort, or retry-with-backoff) decides how concurrent commits reconcile.
 - **Partition-spec versioning** — partition-spec evolution is tracked so a downgrade doesn't reject valid writes.
@@ -55,5 +59,6 @@ The dimensions are not independent. A schema change (State) can change what a co
 ## See also
 
 - [The Data Contract](/concepts/data-contract/)
+- [The unified contract model](/concepts/unified-contract-model/)
 - [The Contract lifecycle](/concepts/lifecycle/)
 - [Enforcement model](/concepts/enforcement/)

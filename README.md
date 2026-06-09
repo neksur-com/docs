@@ -14,7 +14,9 @@ Neksur governs Apache Iceberg datasets through a single **Data Contract** per da
 
 Each Contract runs one lifecycle — `draft → review → compile → deploy → active → audit` — serving three jobs: **Define** the Contract, **Enforce** it everywhere, **Prove** it with audit evidence. AI agents are first-class Contract consumers over MCP.
 
-Read [What is Neksur?](./docs/intro/what-is-neksur.md) for the full overview.
+The Contract is the **authoritative root** of the per-tenant metadata graph: its dimensions are written graph-first and the relational read path is a reconciled projection, Meaning is grounded in a glossary ontology, Access is tag-scoped ("classify once → govern everywhere"), and every attestation anchors to a durable, as-of pinned snapshot — see [The unified contract model](./src/content/docs/concepts/unified-contract-model.md) (ADR-017).
+
+Read [What is Neksur?](./src/content/docs/intro/what-is-neksur.md) for the full overview.
 
 ## Status
 
@@ -46,7 +48,7 @@ Neksur **Core** (BSL) provides:
 The rendered docs live at **[docs.neksur.com](https://docs.neksur.com)**. Source for each section is under [`src/content/docs/`](./src/content/docs/).
 
 - [Introduction](https://docs.neksur.com/intro/what-is-neksur/) — what Neksur is, who it's for, status.
-- [Concepts](https://docs.neksur.com/concepts/) — the Data Contract, the three dimensions, the lifecycle, the enforcement model, and the editions.
+- [Concepts](https://docs.neksur.com/concepts/) — the Data Contract, the unified contract model (authoritative root, grounded Meaning, tag-scoped Access, durable pin, lifecycle gate), the three dimensions, the lifecycle, the enforcement model, and the editions.
 - [Architecture overview](https://docs.neksur.com/architecture/overview/) — system design, the commit pipeline, the graph schema, the API surface, and the ADR index.
 - [Getting started](https://docs.neksur.com/getting-started/install-and-first-contract/) — from zero to a policy rejecting a non-compliant commit.
 - [Guides](https://docs.neksur.com/guides/) — task-oriented how-tos: connect Spark / Trino / BI / AI agents, author policies and metrics, ship a Contract, prove compliance.

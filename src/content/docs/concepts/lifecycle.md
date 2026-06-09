@@ -24,6 +24,12 @@ Transitions not listed are **illegal by construction** — you cannot jump `draf
 
 > The terminal enforcement stage is named **active**. Earlier material may call it *enforce*; the state machine uses `active`.
 
+## The `deploy → active` data gate
+
+Promotion is not a free metadata flip. The load-bearing gate is the **`deploy → active`** transition: data-quality checks plus cross-engine reconciliation against the Contract's [durable pinned snapshot](/concepts/unified-contract-model/#the-durable-pinned-snapshot) must pass before the Contract goes live.
+
+The gate's posture is **block, breach, and escalate-breaking**: a failed gate both blocks the transition and raises a breach. A verified **non-breaking** change flows through automatically (machine-gated), while a **breaking** schema change — caught by breaking-change detection — escalates to human sign-off at the review stage before it can proceed. The machine protects consumers by default; humans engage only on breaking changes. See [the lifecycle gate](/concepts/unified-contract-model/#the-lifecycle-gate).
+
 ## Sign-offs
 
 Moving from **review** to **compile** requires sign-off from the accountable owners — typically the data owner (Meaning), the access owner (Access), and the governance owner. The review queue records who approved what and when; those approvals become part of the audit evidence the Contract later proves.
@@ -45,5 +51,6 @@ Governance that lets you edit a live policy in place has no defensible story for
 ## See also
 
 - [The Data Contract](/concepts/data-contract/)
+- [The unified contract model](/concepts/unified-contract-model/)
 - [Meaning, Access, State](/concepts/dimensions/)
 - [Enforcement model](/concepts/enforcement/)

@@ -37,6 +37,8 @@ A Contract is not a YAML file sitting in a bucket. It is materialized as nodes a
 
 The same governed graph is what AI agents traverse over MCP — under the Contract's own Access policy, so an agent sees row-filtered, column-masked results, never the raw graph.
 
+The Contract is the **authoritative root** of that graph: the Contract and its connecting edges are the source of truth, and the relational tables the read path serves are a derived, reconciled projection. The [unified contract model](/concepts/unified-contract-model/) explains that architecture — graph-first authoring, grounded Meaning, tag-scoped Access, and a durable pinned snapshot that anchors every attestation as-of one version of the data.
+
 ## AI agents as Contract consumers
 
 LLM agents are treated as first-class Contract consumers, not a bolt-on. When an agent queries the graph through the MCP server, the Access dimension of every touched Contract is applied to its results — the same row-filter and column-mask compilation used for human read traffic. An agent cannot see data a human in the same role could not.
